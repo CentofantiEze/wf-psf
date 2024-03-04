@@ -485,6 +485,22 @@ def compute_shape_metrics(
         % (rel_pix_rmse, rel_pix_rmse_std)
     )
 
+    # Measure PSF outskirt residuals
+    psf_mean = np.sum(predictions, axis=0)
+    threshold=np.sum(psf_mean)*0.5/100
+    mask = np.ones(psf_mean.shape)
+    mask[np.where(psf_mean>threshold)]=0
+    residuals_outskirt = np.sqrt(np.mean((GT_predictions*mask - predictions*mask) ** 2, axis=(1, 2)))
+    GT_star_mean_outskirt = np.sqrt(np.mean((GT_predictions*mask) ** 2, axis=(1, 2)))
+
+    # RMSE calculations
+    pix_rmse_outskirt = np.mean(residuals_outskirt)
+    rel_pix_rmse_outskirt = 100.0 * np.mean(residuals_outskirt / GT_star_mean_outskirt)
+
+    # STD calculations
+    pix_rmse_std_outskirt = np.std(residuals_outskirt)
+    rel_pix_rmse_std_outskirt = 100.0 * np.std(residuals_outskirt / GT_star_mean_outskirt)
+
     # Measure shapes of the reconstructions
     pred_moments = [
         gs.hsm.FindAdaptiveMom(gs.Image(_pred), strict=False) for _pred in predictions
@@ -604,6 +620,10 @@ def compute_shape_metrics(
         "pix_rmse_std": pix_rmse_std,
         "rel_pix_rmse": rel_pix_rmse,
         "rel_pix_rmse_std": rel_pix_rmse_std,
+        "pix_rmse_outskirt": pix_rmse_outskirt,
+        "pix_rmse_outskirt_std": pix_rmse_std_outskirt,
+        "rel_pix_rmse_outskirt": rel_pix_rmse_outskirt,
+        "rel_pix_rmse_outskirt_std": rel_pix_rmse_std_outskirt,
         "output_Q": output_Q,
         "output_dim": output_dim,
         "n_bins_lda": n_bins_lda,
