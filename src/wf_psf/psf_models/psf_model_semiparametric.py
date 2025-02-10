@@ -444,6 +444,10 @@ class TFSemiParametricField(tf.keras.Model):
         # Add the estimations
         opd_maps = tf.math.add(param_opd_maps, nonparam_opd_maps)
         # Compute the polychromatic PSFs
-        poly_psfs = self.tf_batch_poly_PSF([opd_maps, packed_SEDs])
+        if len(inputs) > 2:
+            masks = inputs[2]
+            poly_psfs = self.tf_batch_poly_PSF([opd_maps, packed_SEDs, masks])
+        else:
+            poly_psfs = self.tf_batch_poly_PSF([opd_maps, packed_SEDs])
 
         return poly_psfs

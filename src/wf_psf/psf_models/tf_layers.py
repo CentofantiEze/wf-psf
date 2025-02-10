@@ -210,6 +210,10 @@ class TFBatchPolychromaticPSF(tf.keras.layers.Layer):
         stack_psf = _calculate_polychromatic_PSF(SED_pack_data)
         polychromatic_psf = tf.math.reduce_sum(stack_psf, axis=0)
 
+        if len(packed_elems) > 2:
+            mask = packed_elems[2]
+            polychromatic_psf = tf.math.multiply(polychromatic_psf, tf.cast(mask, polychromatic_psf.dtype))
+
         return polychromatic_psf
 
     def call(self, inputs):
@@ -228,7 +232,11 @@ class TFBatchPolychromaticPSF(tf.keras.layers.Layer):
                 swap_memory=True,
             )
 
-        psf_polychromatic_batch = _calculate_PSF_batch((opd_batch, packed_SED_data))
+        if len(inputs) > 2:
+            masks = inputs[2]
+            psf_polychromatic_batch = _calculate_PSF_batch((opd_batch, packed_SED_data, masks))
+        else:
+            psf_polychromatic_batch = _calculate_PSF_batch((opd_batch, packed_SED_data))
 
         return psf_polychromatic_batch
 
